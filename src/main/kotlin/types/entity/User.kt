@@ -8,7 +8,7 @@ import jakarta.persistence.Table
 import java.time.LocalDateTime
 
 @Entity
-@Table(name = "users")
+@Table(name = "user")
 data class User(
     @Id
     @Column(name = "ulid", length = 26)
