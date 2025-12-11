@@ -21,8 +21,8 @@ class GoogleAuthService(
     private val httpClient: CallClient
 ) : OAuthServiceInterface {
     private val oAuthInfo = config.providers[key] ?: throw CustomException(ErrorCode.AUTH_CONFIG_NOT_FOUND, key)
-    private val tokenURL = "https://github.com/login/oauth/access_token"
-    private val userInfoURL = "https://api.github.com/user"
+    private val tokenURL = "https://oauth2.googleapis.com/token"
+    private val userInfoURL = "https://www.googleapis.com/oauth2/v2/userinfo"
 
     override val providerName: String = key
 
@@ -47,12 +47,13 @@ class GoogleAuthService(
     override fun getUserInfo(accessToken: String): OAuth2UserResponse {
         val headers = mapOf(
             "Content-Type" to "application/json",
-            "Authorization" to "Bearer $accessToken",
+            "Authorization" to "Bearer $accessToken"
         )
 
         val jsonString = httpClient.GET(userInfoURL, headers)
-        val response: GoogleUserResponseTemp = JsonUtil.decodeFromJson(jsonString, GoogleUserResponseTemp.serializer())
-        return response.toOAuth2UserResponse()
+        val response: GoogleUserResponse =
+            JsonUtil.decodeFromJson(jsonString, GoogleUserResponse.serializer())
+        return response
     }
 }
 
@@ -63,22 +64,8 @@ data class GoogleTokenResponse(
 ) : OAuth2TokenResponse
 
 @Serializable
-data class GoogleUserResponseTemp(
-    val id: Int,
-    val repos_url: String,
-    val name: String,
-) {
-    fun toOAuth2UserResponse() = GoogleUserResponse(
-        id = id.toString(),
-        email = repos_url,
-        name = name
-    )
-
-}
-
-@Serializable
 data class GoogleUserResponse(
     override val id: String,
-    override val email: String?,
-    override val name: String?
+    override val email: String,
+    override val name: String,
 ) : OAuth2UserResponse
