@@ -22,8 +22,8 @@ class GithubAuthService(
     private val httpClient: CallClient,
 ) : OAuthServiceInterface {
     private val oAuthInfo = config.providers[key] ?: throw CustomException(ErrorCode.AUTH_CONFIG_NOT_FOUND, key)
-    private val tokenURL = "https://oauth2.googleapis.com/token"
-    private val userInfoURL = "https://www.googleapis.com/oauth2/v2/userinfo"
+    private val tokenURL = "https://github.com/login/oauth/access_token"
+    private val userInfoURL = "https://api.github.com/user"
 
     override val providerName: String = key
 
@@ -36,7 +36,7 @@ class GithubAuthService(
             .add("grant_type", "authorization_code")
             .build()
 
-        val headers = mapOf("Accespt" to "application/json")
+        val headers = mapOf("Accept" to "application/json")
         val jsonString = httpClient.POST(tokenURL, headers, body)
 
         // jsonString -> json 처리
