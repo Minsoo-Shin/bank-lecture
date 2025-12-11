@@ -4,6 +4,8 @@ plugins {
     kotlin("plugin.spring") version "1.8.0"
 
     id("io.spring.dependency-management") version "1.0.15.RELEASE"
+
+    kotlin("plugin.serialization") version "1.8.0"
 }
 
 group = "com.example"
