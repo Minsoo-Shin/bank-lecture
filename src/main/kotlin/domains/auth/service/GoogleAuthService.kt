@@ -1,5 +1,7 @@
 package com.example.domains.auth.service
 
+import com.example.common.exception.CustomException
+import com.example.common.exception.ErrorCode
 import com.example.config.OAuth2Config
 import com.example.interfaces.OAuth2TokenResponse
 import com.example.interfaces.OAuth2UserResponse
@@ -12,7 +14,7 @@ private const val key = "google"
 class GoogleAuthService(
     private val config: OAuth2Config
 ) : OAuthServiceInterface {
-    private val oAuthInfo = config.providers[key] ?: throw TODO("Custom Exception")
+    private val oAuthInfo = config.providers[key] ?: throw CustomException(ErrorCode.AUTH_CONFIG_NOT_FOUND, key)
 
     override val providerName: String = key
 
