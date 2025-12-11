@@ -1,0 +1,27 @@
+package com.example.common.transaction
+
+import org.springframework.transaction.annotation.Transactional
+import org.springframework.stereotype.Component
+
+interface Runner {
+    fun <T> run(function: () -> T?): T?
+    fun <T> readOnly(function: () -> T?): T?
+}
+
+@Component
+class Transactional(
+    private val advice: Runner = Advice()
+) {
+
+    fun <T> run(function: () -> T?): T? = advice.run(function)
+    fun <T> readOnly(function: () -> T?): T? = advice.run(function)
+
+    @Component
+    private class Advice : Runner {
+        @Transactional
+        override fun <T> run(function: () -> T?): T? = function()
+
+        @Transactional(readOnly = true)
+        override fun <T> readOnly(function: () -> T?): T? = function()
+    }
+}
