@@ -51,3 +51,5 @@ gradle.xml
 kotlinc.xml
 misc.xml
 vcs.xml
+
+docs/private/
