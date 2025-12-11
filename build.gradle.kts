@@ -6,6 +6,7 @@ plugins {
     id("io.spring.dependency-management") version "1.0.15.RELEASE"
 
     kotlin("plugin.serialization") version "1.8.0"
+    kotlin("plugin.jpa") version "1.9.22" // JPA가 필요로 하는 no-arg 생성자와 초기화 로직을 자동 생성해줌
 }
 
 group = "com.example"
