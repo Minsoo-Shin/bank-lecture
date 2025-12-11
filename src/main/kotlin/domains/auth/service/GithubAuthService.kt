@@ -3,10 +3,13 @@ package com.example.domains.auth.service
 import com.example.common.exception.CustomException
 import com.example.common.exception.ErrorCode
 import com.example.common.httpClient.CallClient
+import com.example.common.json.JsonUtil
 import com.example.config.OAuth2Config
 import com.example.interfaces.OAuth2TokenResponse
 import com.example.interfaces.OAuth2UserResponse
 import com.example.interfaces.OAuthServiceInterface
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 import okhttp3.FormBody
 import org.springframework.stereotype.Service
 import kotlin.collections.mapOf
@@ -34,15 +37,50 @@ class GithubAuthService(
             .build()
 
         val headers = mapOf("Accespt" to "application/json")
-        httpClient.POST(tokenURL, headers, body)
+        val jsonString = httpClient.POST(tokenURL, headers, body)
 
         // jsonString -> json 처리
-        
+        val response = JsonUtil.decodeFromJson(jsonString, GithubTokenResponse.serializer())
 
-        TODO()
+        return response
     }
 
     override fun getUserInfo(accessToken: String): OAuth2UserResponse {
-        TODO("Not yet implemented")
+        val headers = mapOf(
+            "Content-Type" to "application/json",
+            "Authorization" to "Bearer $accessToken",
+        )
+
+        val jsonString = httpClient.GET(userInfoURL, headers)
+        val response = JsonUtil.decodeFromJson(jsonString, GithubUserResponseTemp.serializer())
+
+        return response.toOAuth2UserResponse()
     }
 }
+
+@Serializable
+data class GithubTokenResponse(
+    @SerialName("access_token") override val accessToken: String,
+    // expiress_in
+) : OAuth2TokenResponse
+
+@Serializable
+data class GithubUserResponseTemp(
+    val id: Int,
+    val repos_url: String,
+    val name: String,
+) {
+    fun toOAuth2UserResponse() = GithubUserResponse(
+        id = id.toString(),
+        email = repos_url,
+        name = name
+    )
+
+}
+
+@Serializable
+data class GithubUserResponse(
+    override val id: String,
+    override val email: String?,
+    override val name: String?
+) : OAuth2UserResponse
