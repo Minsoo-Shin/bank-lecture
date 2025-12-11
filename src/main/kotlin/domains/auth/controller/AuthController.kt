@@ -24,12 +24,12 @@ class AuthController(
         @RequestParam("state", required = true) state: String,
         response: HttpServletResponse,
     ): ResponseEntity<Map<String, String>> {
-        val token = authService.handleAuth(code, state)
+        val token = authService.handleAuth(state, code)
 
         response.addCookie(
             Cookie("authToken", token).apply {
                 isHttpOnly = true
-                path = "/callback"
+                path = "/"
                 maxAge = 60 * 60 * 24
             }
         )
@@ -37,7 +37,7 @@ class AuthController(
         return ResponseEntity.status(HttpStatus.FOUND).location(URI.create("http://localhost:3000")).build()
     }
 
-    @GetMapping("/api/v1/token/verify")
+    @GetMapping("/verify")
     fun verifyToken(
         @RequestHeader("Authorization", required = true) authHeader: String,
     ) {
