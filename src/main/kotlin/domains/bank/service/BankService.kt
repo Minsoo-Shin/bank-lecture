@@ -9,13 +9,13 @@ import com.example.domains.bank.repository.BankUserRepository
 import com.example.types.dto.Response
 import com.example.types.dto.ResponseProvider
 import com.example.types.entity.Account
-import com.github.f4b6a3.ulid.Ulid
 import com.github.f4b6a3.ulid.UlidCreator
+import org.slf4j.Logger
+import org.springframework.dao.DataAccessException
 import org.springframework.stereotype.Service
-import org.slf4j.*
-import java.lang.Math.random
 import java.math.BigDecimal
 import java.time.LocalDateTime
+import java.util.concurrent.ThreadLocalRandom
 
 @Service
 class BankService(
@@ -29,7 +29,10 @@ class BankService(
         log["userUlid"] = userUlid
 
         transaction.run {
-            val user = bankUserRepository.findByUlid(userUlid)
+            val user = bankUserRepository.findByUlid(userUlid) ?: throw CustomException(
+                ErrorCode.FAILED_TO_FIND_DATA,
+                "userUlid:$userUlid"
+            )
 
             val ulid = UlidCreator.getUlid().toString()
             val accountNumber = generateRandomAccountNumber()
@@ -42,8 +45,9 @@ class BankService(
 
             try {
                 bankAccountRepository.save(account)
-            } catch (e: Exception) {
-                throw CustomException(ErrorCode.FAILED_TO_SAVE_DATA, e.message)
+            } catch (e: DataAccessException) {
+                logger.error("Failed to save account for userUlid: $userUlid", e)
+                throw CustomException(ErrorCode.FAILED_TO_SAVE_DATA)
             }
         }
 
@@ -57,9 +61,9 @@ class BankService(
         return@logFor transaction.run {
             val account = bankAccountRepository.findByUlid(accountUlid) ?: throw CustomException(
                 ErrorCode.FAILED_TO_FIND_DATA,
-                userUlid
+                "accountUlid:$accountUlid"
             )
-            if (account.user.ulid != userUlid) throw CustomException(ErrorCode.MISS_MATCH_ACCOUNT_ULID_AND_USER_ULID)
+            if (account.user.ulid != userUlid) throw CustomException(ErrorCode.MISMATCH_ACCOUNT_ULID_AND_USER_ULID)
             ResponseProvider.success(account.balance)
         }
 
@@ -70,13 +74,12 @@ class BankService(
         log["accountUlid"] = accountUlid
 
         transaction.run {
-            bankUserRepository.findByUlid(userUlid)
             val account = bankAccountRepository.findByUlid(accountUlid) ?: throw CustomException(
                 ErrorCode.FAILED_TO_FIND_DATA,
                 accountUlid
             )
 
-            if (account.user.ulid != userUlid) throw CustomException(ErrorCode.MISS_MATCH_ACCOUNT_ULID_AND_USER_ULID)
+            if (account.user.ulid != userUlid) throw CustomException(ErrorCode.MISMATCH_ACCOUNT_ULID_AND_USER_ULID)
             if (account.balance.compareTo(BigDecimal.ZERO) != 0) throw CustomException(ErrorCode.ACCOUNT_BALANCE_IS_NOT_ZERO)
 
             val updatedAccount = account.copy(
@@ -95,7 +98,7 @@ class BankService(
         val bankCode = "003"
         val section = "12"
 
-        val number = random().toString()
+        val number = ThreadLocalRandom.current().nextInt(100_000, 1_000_000).toString()
         return "$bankCode-$section-$number"
     }
 }

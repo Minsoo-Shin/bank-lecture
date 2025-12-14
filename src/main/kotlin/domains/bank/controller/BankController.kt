@@ -2,11 +2,7 @@ package com.example.domains.bank.controller
 
 import com.example.domains.bank.service.BankService
 import com.example.types.dto.Response
-import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.PathVariable
-import org.springframework.web.bind.annotation.PostMapping
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.*
 import java.math.BigDecimal
 
 @RestController
@@ -30,7 +26,7 @@ class BankController(
         return bankService.balance(userUlid, accountUlid)
     }
 
-    @PostMapping("/remove/{userUlid}/{accountUlid}")
+    @DeleteMapping("/remove/{userUlid}/{accountUlid}")
     fun removeAccount(
         @PathVariable(required = true) userUlid: String,
         @PathVariable(required = true) accountUlid: String,
