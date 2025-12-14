@@ -34,7 +34,7 @@ class RedisConfig {
         }
 
         val clientConfig = LettuceClientConfiguration.builder()
-            .commandTimeout(Duration.ofSeconds(timeout))
+            .commandTimeout(Duration.ofMillis(timeout))
             .build()
 
 
@@ -61,7 +61,7 @@ class RedisConfig {
     fun redissonClient(
         @Value("\${database.redisson.host}") host: String,
         @Value("\${database.redisson.timeout}") timeout: Int,
-        @Value("\${database.redisson.password:${null}}") password: String?,
+        @Value("\${database.redisson.password:}") password: String,
     ): RedissonClient {
         val config = Config()
         // 보통 single server 사용함. 거의 문제 터지는 상황이 없다고 함.
