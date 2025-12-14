@@ -1,6 +1,8 @@
 package com.example.domains.transaction.model
 
 import jakarta.validation.constraints.NotBlank
+import jakarta.validation.constraints.NotNull
+import jakarta.validation.constraints.Positive
 import java.math.BigDecimal
 
 data class DepositRequest(
@@ -10,7 +12,8 @@ data class DepositRequest(
     @field:NotBlank(message = "accountUlid is required")
     val accountUlid: String,
 
-    @field:NotBlank(message = "value is required")
+    @field:NotNull(message = "value is required")
+    @field:Positive(message = "value must be positive")
     val value: BigDecimal
 )
 
@@ -24,7 +27,8 @@ data class TransferRequest(
     @field:NotBlank(message = "toAccountUlid is required")
     val toAccountUlid: String,
 
-    @field:NotBlank(message = "value is required")
+    @field:NotNull(message = "value is required")
+    @field:Positive(message = "value must be positive")
     val value: BigDecimal
 
 )
