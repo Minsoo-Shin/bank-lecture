@@ -31,10 +31,6 @@ database:
     driver-class-name: com.mysql.cj.jdbc.Driver
 # log 확인
 spring:
-  data:
-    redis:
-      host: localhost
-      port: 6379
   jpa:
     show-sql: true
     properties:
