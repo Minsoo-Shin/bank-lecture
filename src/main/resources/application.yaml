@@ -14,6 +14,16 @@ oauth2:
       redirect-uri: http://localhost:9090/api/v1/auth/callback
 
 database:
+  redis:
+    host: localhost
+    port: 6379
+    password: ""
+    database: 0
+    timeout: 10000
+  redisson:
+    host: redis://127.0.0.1:6379
+    timeout: 10000
+    password: ""
   mysql:
     url: jdbc:mysql://localhost:3306/bank?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
     username: root
@@ -21,6 +31,10 @@ database:
     driver-class-name: com.mysql.cj.jdbc.Driver
 # log 확인
 spring:
+  data:
+    redis:
+      host: localhost
+      port: 6379
   jpa:
     show-sql: true
     properties:

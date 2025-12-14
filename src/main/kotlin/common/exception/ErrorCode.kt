@@ -19,5 +19,7 @@ enum class ErrorCode(
     FAILED_TO_SAVE_DATA(-107, "failed to save data"),
     FAILED_TO_FIND_DATA(-108, "failed to find data"),
     MISMATCH_ACCOUNT_ULID_AND_USER_ULID(-109, "mismatch account ulid and user ulid"),
-    ACCOUNT_BALANCE_IS_NOT_ZERO(-110, "account balance is not zero")
+    ACCOUNT_BALANCE_IS_NOT_ZERO(-110, "account balance is not zero"),
+    FAILED_TO_MUTEX_INVOKE(-111, "failed to mutex invoke"),
+    FAILED_TO_GET_LOCK(-112, "failed to get lock")
 }
