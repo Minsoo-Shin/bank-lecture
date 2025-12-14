@@ -1,24 +1,58 @@
 package com.example.domains.transaction.service
 
+import com.example.common.cache.RedisClient
+import com.example.common.cache.RedisKeyProvider
+import com.example.common.exception.CustomException
+import com.example.common.exception.ErrorCode
+import com.example.common.logging.Logging
+import com.example.common.transaction.Transactional
 import com.example.domains.transaction.model.DepositRequest
 import com.example.domains.transaction.model.DepositResponse
 import com.example.domains.transaction.model.TransferRequest
 import com.example.domains.transaction.model.TransferResponse
+import com.example.domains.transaction.repository.TransactionAccount
+import com.example.domains.transaction.repository.TransactionUser
 import com.example.types.dto.Response
 import com.example.types.dto.ResponseProvider
+import org.slf4j.Logger
 import org.springframework.stereotype.Service
+import java.time.LocalDateTime
 
 @Service
-class TransactionService {
-    fun deposit(request: DepositRequest): Response<DepositResponse> {
-        // 트랜잭션
-        // 계좌를 조회하고, 유저 일치하는지 확인
-        // 계좌에 돈을 넣는다.
-        return ResponseProvider.success(
-            DepositResponse(
-                afterBalance = 0.toBigDecimal()
-            )
-        )
+class TransactionService(
+    private val transactionUser: TransactionUser,
+    private val transactionAccount: TransactionAccount,
+    private val transactional: Transactional,
+    private val logger: Logger = Logging.getLogger(TransactionService::class.java),
+    private val redisClient: RedisClient,
+) {
+    fun deposit(request: DepositRequest): Response<DepositResponse> = Logging.logFor(logger) { log ->
+        log["userUlid"] = request.userUlid
+        log["accountUlid"] = request.accountUlid
+        log["value"] = request.value
+
+        val redisKey = RedisKeyProvider.historyCacheKey(ulid = request.userUlid, accountUlid = request.accountUlid)
+        return@logFor redisClient.invokeWithMutex(redisKey) {
+            return@invokeWithMutex transactional.run {
+                // 계좌를 조회하고, 유저 일치하는지 확인
+                val account = (transactionAccount.findByUlidAndIsDeletedFalse(request.accountUlid)
+                    ?: throw CustomException(ErrorCode.FAILED_TO_FIND_DATA, "accountUlid:${request.accountUlid}"))
+
+                // 본인 계좌인지 확인
+                if (account.user.ulid != request.userUlid) {
+                    throw CustomException(ErrorCode.MISMATCH_ACCOUNT_ULID_AND_USER_ULID)
+                }
+
+                // 계좌에 돈을 넣는다.
+                account.balance.add(request.value)
+                account.updatedAt = LocalDateTime.now()
+
+                transactionAccount.save(account)
+
+                return@run ResponseProvider.success(DepositResponse(afterBalance = account.balance))
+            }
+        }
+
     }
 
     fun transfer(request: TransferRequest): Response<TransferResponse> {
