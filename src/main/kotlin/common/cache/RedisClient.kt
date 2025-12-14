@@ -4,8 +4,10 @@ import com.example.common.exception.CustomException
 import com.example.common.exception.ErrorCode
 import org.redisson.api.RedissonClient
 import org.springframework.data.redis.core.RedisTemplate
+import org.springframework.stereotype.Component
 import java.util.concurrent.TimeUnit
 
+@Component
 class RedisClient(
     private val template: RedisTemplate<String, String>,
     private val redissonClient: RedissonClient
@@ -34,7 +36,7 @@ class RedisClient(
             if (!lockAcquired) {
                 throw CustomException(ErrorCode.FAILED_TO_GET_LOCK, key)
             }
-            
+
             return function.invoke()
         } catch (e: Exception) {
             throw CustomException(ErrorCode.FAILED_TO_MUTEX_INVOKE)
