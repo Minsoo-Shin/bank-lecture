@@ -38,6 +38,10 @@ class TransactionService(
                 val account = (transactionAccount.findByUlidAndIsDeletedFalse(request.accountUlid)
                     ?: throw CustomException(ErrorCode.FAILED_TO_FIND_DATA, "accountUlid:${request.accountUlid}"))
 
+                if (account.user.ulid != request.userUlid) throw CustomException(
+                    ErrorCode.MISMATCH_ACCOUNT_ULID_AND_USER_ULID,
+                    "accountUlid:${request.accountUlid}, userUlid:${request.userUlid}"
+                )
                 // 계좌에 돈을 넣는다.
                 account.apply {
                     balance = balance.add(request.value)
@@ -51,17 +55,23 @@ class TransactionService(
         }
     }
 
-    fun transfer(request: TransferRequest): Response<TransferResponse> {
+    fun transfer(request: TransferRequest): Response<TransferResponse> = Logging.logFor(logger) {
         // 트랜잭션
         // 출금 계좌 유저 맞는지 확인
         // 입금 계좌 있는지 조회
         // 계좌 잔고 유효성 검증
         // fromAccount 출금
         // toAccount 입금
-        return ResponseProvider.success(
-            TransferResponse(
-                afterFromBalance = 0.toBigDecimal()
-            )
-        )
+        val redisKey = RedisKeyProvider.bankMutexKey(accountUlid = request.fromAccountUlid)
+        return@logFor redisClient.invokeWithMutex(redisKey) {
+            return@invokeWithMutex transactional.run {
+                ResponseProvider.success(
+                    TransferResponse(
+                        afterFromBalance = 0.toBigDecimal()
+                    )
+                )
+            }
+        }
+
     }
 }
