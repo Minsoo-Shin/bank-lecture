@@ -31,28 +31,24 @@ class TransactionService(
         log["accountUlid"] = request.accountUlid
         log["value"] = request.value
 
-        val redisKey = RedisKeyProvider.historyCacheKey(ulid = request.userUlid, accountUlid = request.accountUlid)
+        val redisKey = RedisKeyProvider.bankMutexKey(accountUlid = request.accountUlid)
         return@logFor redisClient.invokeWithMutex(redisKey) {
             return@invokeWithMutex transactional.run {
                 // 계좌를 조회하고, 유저 일치하는지 확인
                 val account = (transactionAccount.findByUlidAndIsDeletedFalse(request.accountUlid)
                     ?: throw CustomException(ErrorCode.FAILED_TO_FIND_DATA, "accountUlid:${request.accountUlid}"))
 
-                // 본인 계좌인지 확인
-                if (account.user.ulid != request.userUlid) {
-                    throw CustomException(ErrorCode.MISMATCH_ACCOUNT_ULID_AND_USER_ULID)
-                }
-
                 // 계좌에 돈을 넣는다.
-                account.balance.add(request.value)
-                account.updatedAt = LocalDateTime.now()
+                account.apply {
+                    balance = balance.add(request.value)
+                    updatedAt = LocalDateTime.now()
+                }
 
                 transactionAccount.save(account)
 
                 return@run ResponseProvider.success(DepositResponse(afterBalance = account.balance))
             }
         }
-
     }
 
     fun transfer(request: TransferRequest): Response<TransferResponse> {
