@@ -3,11 +3,11 @@ package com.example.common.message
 import com.example.common.exception.CustomException
 import com.example.common.exception.ErrorCode
 import com.example.common.logging.Logging
-import io.netty.handler.timeout.TimeoutException
 import org.slf4j.Logger
 import org.springframework.kafka.core.KafkaTemplate
 import org.springframework.stereotype.Component
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.TimeoutException
 
 @Component
 class KafkaProducerSync(
