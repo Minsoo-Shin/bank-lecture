@@ -9,6 +9,8 @@ import org.springframework.stereotype.Component
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
 
+private const val SEND_TIMEOUT_SECONDS = 1L
+
 @Component
 class KafkaProducerSync(
     private val kafkaTemplate: KafkaTemplate<String, String>,
@@ -16,10 +18,12 @@ class KafkaProducerSync(
 ) {
     fun sendMessageSync(topic: String, message: String) {
         try {
-            kafkaTemplate.send(topic, message).get(1, TimeUnit.SECONDS)
+            kafkaTemplate.send(topic, message).get(SEND_TIMEOUT_SECONDS, TimeUnit.SECONDS)
         } catch (e: TimeoutException) {
+            log.error("메시지 전송 타임아웃 - topic: {}", topic, e)
             throw CustomException(ErrorCode.SEND_MESSAGE_TIME_OUT, topic)
         } catch (e: Exception) {
+            log.error("메시지 전송 실패 - topic: {}", topic, e)
             throw CustomException(ErrorCode.FAILED_TO_SEND_MESSAGE, topic)
         }
     }
