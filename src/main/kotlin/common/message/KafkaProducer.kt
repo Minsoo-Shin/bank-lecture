@@ -4,7 +4,6 @@ import com.example.common.exception.CustomException
 import com.example.common.exception.ErrorCode
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import org.springframework.context.annotation.Bean
 import org.springframework.kafka.core.KafkaTemplate
 import org.springframework.kafka.support.SendResult
 import org.springframework.stereotype.Component
@@ -13,12 +12,11 @@ import java.util.concurrent.CompletableFuture
 
 @Component
 class KafkaProducer(
-    private val kafkaTemplate: KafkaTemplate<String, Any>,
+    private val kafkaTemplate: KafkaTemplate<String, String>,
     private val log: Logger = LoggerFactory.getLogger(KafkaProducer::class.java)
 ) {
-    @Bean
-    fun sendMessage(topic: String, message: Any) {
-        val future: CompletableFuture<SendResult<String, Any>> = kafkaTemplate.send(topic, message);
+    fun sendMessage(topic: String, message: String) {
+        val future: CompletableFuture<SendResult<String, String>> = kafkaTemplate.send(topic, message)
         future.whenComplete { metadata, ex ->
             if (ex == null) {
                 // hanlde success
