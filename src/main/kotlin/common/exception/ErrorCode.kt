@@ -23,4 +23,5 @@ enum class ErrorCode(
     FAILED_TO_MUTEX_INVOKE(-111, "failed to mutex invoke"),
     FAILED_TO_GET_LOCK(-112, "failed to get lock"),
     FAILED_TO_SEND_MESSAGE(-113, "failed to send message"),
+    SEND_MESSAGE_TIME_OUT(-114, "send message time out")
 }
