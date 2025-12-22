@@ -5,6 +5,8 @@ import com.example.common.cache.RedisKeyProvider
 import com.example.common.exception.CustomException
 import com.example.common.exception.ErrorCode
 import com.example.common.logging.Logging
+import com.example.common.message.KafkaProducerSync
+import com.example.common.message.KafkaTopic
 import com.example.common.transaction.Transactional
 import com.example.domains.transaction.model.DepositRequest
 import com.example.domains.transaction.model.DepositResponse
@@ -14,6 +16,8 @@ import com.example.domains.transaction.repository.TransactionAccount
 import com.example.domains.transaction.repository.TransactionUser
 import com.example.types.dto.Response
 import com.example.types.dto.ResponseProvider
+import com.example.types.message.TransactionMessage
+import com.fasterxml.jackson.databind.ObjectMapper
 import org.slf4j.Logger
 import org.springframework.stereotype.Service
 import java.time.LocalDateTime
@@ -25,6 +29,8 @@ class TransactionService(
     private val transactional: Transactional,
     private val logger: Logger = Logging.getLogger(TransactionService::class.java),
     private val redisClient: RedisClient,
+    private val objectMapper: ObjectMapper,
+    private val kafkaProducer: KafkaProducerSync,
 ) {
     fun deposit(request: DepositRequest): Response<DepositResponse> = Logging.logFor(logger) { log ->
         log["userUlid"] = request.userUlid
@@ -49,6 +55,20 @@ class TransactionService(
                 }
 
                 transactionAccount.save(account)
+
+                val messageString = objectMapper.writeValueAsString(
+                    TransactionMessage(
+                        fromUlid = "0x0",
+                        fromName = "0x0",
+                        fromAccountID = "0x0",
+                        toUlid = request.userUlid,
+                        toName = account.user.username,
+                        toAccountID = request.accountUlid,
+                        value = request.value,
+                    )
+                )
+
+                kafkaProducer.sendMessageSync(KafkaTopic.Transactions.topic, messageString)
 
                 return@run ResponseProvider.success(DepositResponse(afterBalance = account.balance))
             }

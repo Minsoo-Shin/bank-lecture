@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
 
-private const val SEND_TIMEOUT_SECONDS = 1L
+private const val SEND_TIMEOUT_SECONDS = 3L
 
 @Component
 class KafkaProducerSync(
