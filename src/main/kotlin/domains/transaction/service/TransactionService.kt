@@ -4,6 +4,7 @@ import com.example.common.cache.RedisClient
 import com.example.common.cache.RedisKeyProvider
 import com.example.common.exception.CustomException
 import com.example.common.exception.ErrorCode
+import com.example.common.json.JsonUtil
 import com.example.common.logging.Logging
 import com.example.common.message.KafkaProducerSync
 import com.example.common.message.KafkaTopic
@@ -56,7 +57,7 @@ class TransactionService(
 
                 transactionAccount.save(account)
 
-                val messageString = objectMapper.writeValueAsString(
+                val messageString = JsonUtil.encodeToJson(
                     TransactionMessage(
                         fromUlid = "0x0",
                         fromName = "0x0",
@@ -65,7 +66,7 @@ class TransactionService(
                         toName = account.user.username,
                         toAccountID = request.accountUlid,
                         value = request.value,
-                    )
+                    ), TransactionMessage.serializer()
                 )
 
                 kafkaProducer.sendMessageSync(KafkaTopic.Transactions.topic, messageString)
