@@ -4,6 +4,7 @@ import com.example.domains.transaction.model.DepositRequest
 import com.example.domains.transaction.model.DepositResponse
 import com.example.domains.transaction.service.TransactionService
 import com.example.types.dto.Response
+import jakarta.validation.Valid
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
@@ -17,7 +18,7 @@ class TransactionController(
 
     @PostMapping("/deposit")
     fun deposit(
-        @RequestBody(required = true) request: DepositRequest
+        @Valid @RequestBody(required = true) request: DepositRequest
     ): Response<DepositResponse> {
         return transactionService.deposit(request)
     }
